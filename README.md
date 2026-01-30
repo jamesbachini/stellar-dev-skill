@@ -26,20 +26,24 @@ These skills work with any agent that supports the [Agent Skills](https://agents
 
 ### [Claude Code](https://code.claude.com/docs/en/discover-plugins#add-from-github)
 
-```
-/plugin marketplace add kalepail/stellar-dev-skill
+```bash
+# Add this repo as a marketplace
+/plugin marketplace add stellar/stellar-dev-skill
+
+# Then install the skill
+/plugin install stellar-dev@stellar-dev-skill
 ```
 
 ### [npx skills](https://skills.sh)
 
 ```bash
-npx skills add https://github.com/kalepail/stellar-dev-skill
+npx skills add https://github.com/stellar/stellar-dev-skill
 ```
 
 ### Clone / Copy
 
 ```bash
-git clone https://github.com/kalepail/stellar-dev-skill
+git clone https://github.com/stellar/stellar-dev-skill
 ```
 
 Copy the `skill/` directory contents to your assistant's skills location.
