@@ -463,7 +463,7 @@ stellar contract invoke --id verifier --network futurenet \
 - [X-Ray Announcement](https://stellar.org/blog/developers/announcing-stellar-x-ray-protocol-25) — Protocol 25 overview
 - [CAP-0074](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0074.md) — BN254 specification
 - [CAP-0075](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0075.md) — Poseidon specification
-- [Soroban SDK BN254 Source](https://github.com/stellar/rs-soroban-sdk/blob/release/v25-preview/soroban-sdk/src/crypto/bn254.rs) — Implementation reference
+- [Soroban SDK BN254 Source](https://github.com/stellar/rs-soroban-sdk/blob/v25.0.1/soroban-sdk/src/crypto/bn254.rs) — Implementation reference
 
 ### Example Contracts
 - [P25 Preview Examples](https://github.com/jayz22/soroban-examples/tree/p25-preview/p25-preview) — BN254 and Poseidon examples
