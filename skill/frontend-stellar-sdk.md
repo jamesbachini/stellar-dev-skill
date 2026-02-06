@@ -33,16 +33,16 @@ npm install @stellar/stellar-sdk @creit.tech/stellar-wallets-kit
 import * as StellarSdk from "@stellar/stellar-sdk";
 
 // For Testnet
-const server = new StellarSdk.Horizon.Server("https://horizon-testnet.stellar.org");
-const rpc = new StellarSdk.rpc.Server("https://soroban-testnet.stellar.org");
-const networkPassphrase = StellarSdk.Networks.TESTNET;
+const testnetServer = new StellarSdk.Horizon.Server("https://horizon-testnet.stellar.org");
+const testnetRpc = new StellarSdk.rpc.Server("https://soroban-testnet.stellar.org");
+const testnetNetworkPassphrase = StellarSdk.Networks.TESTNET;
 
 // For Mainnet
-const server = new StellarSdk.Horizon.Server("https://horizon.stellar.org");
+const mainnetServer = new StellarSdk.Horizon.Server("https://horizon.stellar.org");
 const mainnetRpcUrl = process.env.NEXT_PUBLIC_STELLAR_MAINNET_RPC_URL;
 if (!mainnetRpcUrl) throw new Error("Missing NEXT_PUBLIC_STELLAR_MAINNET_RPC_URL");
-const rpc = new StellarSdk.rpc.Server(mainnetRpcUrl); // set from your chosen RPC provider
-const networkPassphrase = StellarSdk.Networks.PUBLIC;
+const mainnetRpc = new StellarSdk.rpc.Server(mainnetRpcUrl); // set from your chosen RPC provider
+const mainnetNetworkPassphrase = StellarSdk.Networks.PUBLIC;
 ```
 
 ### Environment Configuration

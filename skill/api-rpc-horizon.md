@@ -22,11 +22,11 @@ Stellar provides two API paradigms:
 
 ### Endpoints
 
-> Note: SDF directly provides Futurenet public RPC. For Mainnet RPC, select a provider from the RPC providers directory.
+> Note: SDF directly provides Futurenet public RPC. For Mainnet RPC, select a provider from the [RPC providers directory](https://developers.stellar.org/docs/data/apis/rpc/providers).
 
 | Network | RPC URL |
 |---------|---------|
-| Mainnet | Provider-specific endpoint (see RPC providers doc) |
+| Mainnet | Provider-specific endpoint (see [RPC providers directory](https://developers.stellar.org/docs/data/apis/rpc/providers)) |
 | Testnet | `https://soroban-testnet.stellar.org` |
 | Futurenet | `https://rpc-futurenet.stellar.org` |
 | Local | `http://localhost:8000/soroban/rpc` |
@@ -403,7 +403,7 @@ See the full indexer directory: https://developers.stellar.org/docs/data/indexer
 ## Network Configuration
 
 > For a React/Next.js-specific setup, see [frontend-stellar-sdk.md](frontend-stellar-sdk.md).
-> For mainnet RPC, set `STELLAR_MAINNET_RPC_URL` from a provider in the RPC providers directory.
+> For mainnet RPC, set `STELLAR_MAINNET_RPC_URL` from a provider in the [RPC providers directory](https://developers.stellar.org/docs/data/apis/rpc/providers).
 
 ### Environment-Based Setup
 
