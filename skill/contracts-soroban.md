@@ -8,6 +8,13 @@ Use Soroban when you need:
 - State management beyond account balances
 - Interoperability with Stellar Assets via SAC
 
+## Quick Navigation
+- Initialization and constructors: [Project Setup](#project-setup), [Contract Constructors (Protocol 22+)](#contract-constructors-protocol-22)
+- Core implementation patterns: [Core Contract Structure](#core-contract-structure), [Storage Types](#storage-types), [Authorization](#authorization)
+- Advanced interactions: [Cross-Contract Calls](#cross-contract-calls), [Events](#events), [Error Handling](#error-handling)
+- Delivery workflow: [Building and Deploying](#building-and-deploying), [Unit Testing](#unit-testing), [Best Practices](#best-practices)
+- ZK status guidance: [Zero-Knowledge Cryptography (Status-Sensitive)](#zero-knowledge-cryptography-status-sensitive)
+
 ## Alternative Languages
 
 Rust is the primary and recommended language for Soroban contracts. Community-maintained alternatives exist but are not recommended for production:

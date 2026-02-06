@@ -1,6 +1,6 @@
 ---
 name: stellar-dev
-description: End-to-end Stellar development playbook. Covers Soroban smart contracts (Rust SDK), Stellar CLI, JavaScript/Python/Go SDKs for client apps, Stellar RPC (preferred) and Horizon API (legacy), Stellar Assets vs Soroban tokens (SAC bridge), wallet integration (Freighter, Stellar Wallets Kit), smart accounts with passkeys, zero-knowledge proof patterns, testing strategies, security patterns, and common pitfalls. Optimized for payments, asset tokenization, DeFi, privacy-aware applications, and financial applications. Use when building on Stellar, Soroban, or working with XLM, Stellar Assets, trustlines, anchors, SEPs, ZK proofs, or the Stellar RPC/Horizon APIs.
+description: End-to-end Stellar development playbook. Covers Soroban smart contracts (Rust SDK), Stellar CLI, JavaScript/Python/Go SDKs for client apps, Stellar RPC (preferred) and Horizon API (legacy), Stellar Assets vs Soroban tokens (SAC bridge), wallet integration (Freighter, Stellar Wallets Kit), smart accounts with passkeys, status-sensitive zero-knowledge proof patterns, testing strategies, security patterns, and common pitfalls. Optimized for payments, asset tokenization, DeFi, privacy-aware applications, and financial applications. Use when building on Stellar, Soroban, or working with XLM, Stellar Assets, trustlines, anchors, SEPs, ZK proofs, or the Stellar RPC/Horizon APIs.
 user-invocable: true
 argument-hint: "[task-description]"
 ---
@@ -15,7 +15,7 @@ Use this Skill when the user asks for:
 - Transaction building / sending / confirmation
 - Stellar Asset issuance and management
 - Client SDK usage (JavaScript, Python, Go, Rust)
-- Zero-knowledge proof verification (BN254, Poseidon, Groth16)
+- Zero-knowledge proof verification (where supported by target network/protocol)
 - Privacy-preserving applications (privacy pools, confidential tokens)
 - Local testing and deployment
 - Security hardening and audit-style reviews
@@ -41,9 +41,9 @@ Use this Skill when the user asks for:
 - Full transaction building, signing, and submission
 - Soroban contract deployment and invocation
 
-### 3. API Access: Stellar RPC first (Horizon deprecated)
+### 3. API Access: Stellar RPC first (Horizon legacy-focused)
 - **Prefer Stellar RPC** for new projects (JSON-RPC, real-time state)
-- **Horizon API** is deprecated but maintained for legacy compatibility
+- **Horizon API** remains available for legacy compatibility and historical-query workflows
 - RPC: 7-day history for most methods; `getLedgers` queries back to genesis (Infinite Scroll)
 - Use Hubble/Galexie for comprehensive historical data beyond RPC
 

@@ -64,6 +64,7 @@ skill/
 ├── frontend-stellar-sdk.md     # Frontend integration patterns
 ├── testing.md                  # Testing strategies
 ├── stellar-assets.md           # Asset issuance and management
+├── zk-proofs.md                # ZK proof architecture and verification patterns
 ├── api-rpc-horizon.md          # API access (RPC/Horizon)
 ├── security.md                 # Security checklist
 ├── common-pitfalls.md          # Common issues and solutions
