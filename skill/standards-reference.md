@@ -50,10 +50,15 @@ Treat this file as a routing map, not a source of final governance/status truth.
 - [CAP-0059](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0059.md): BLS12-381 primitives
 - [CAP-0067](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0067.md): protocol/runtime improvements including asset/event model changes
 
-### Newer and draft crypto/features
+### Cryptographic primatives
 - [CAP-0074](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0074.md): BN254 host functions proposal
 - [CAP-0075](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0075.md): Poseidon/Poseidon2 proposal
+
+### Newer and draft crypto/features
 - [CAP-0079](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0079.md): muxed-address strkey conversion proposal
+- [CAP-0080](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0080.md): Host functions for efficient ZK BN254 use cases
+- [CAP-0081](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0081.md): TTL-Ordered Eviction
+- [CAP-0082](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0082.md): Checked 256-bit integer arithmetic host functions
 
 Use the CAP preamble status fields as the source of truth for implementation readiness.
 
