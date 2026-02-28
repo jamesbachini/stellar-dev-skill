@@ -20,7 +20,7 @@ Do not assume all capabilities are present on all networks/environments.
 Three proving approaches are actively used by the Stellar developer community: Noir, Circom and RISC Zero
 
 ### Noir
-A Rust-like domain specific programming language for creating zero-knowledge circuits. Note that Noir support is currently limited on Stellar due to processing constraints in a decentralized computing environment. This is a situation that we expect to see evolving throughout the course of the hackathon.
+A Rust-like domain specific programming language for creating zero-knowledge circuits.
 Noir Docs: https://noir-lang.org/docs/
 
 #### Noir x Ultrahonk
@@ -69,7 +69,7 @@ Benefits:
 - Easier upgrades/migrations
 - Cleaner operational telemetry
 
-Proven pattern from hackathon projects: a standalone `ZkVerifier` contract that accepts circuit-specific verification keys, paired with game/application contracts that invoke it via cross-contract calls:
+Proven pattern: a standalone `ZkVerifier` contract that accepts circuit-specific verification keys, paired with game/application contracts that invoke it via cross-contract calls:
 
 ```rust
 // Verifier client trait for cross-contract calls
