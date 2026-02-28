@@ -24,7 +24,7 @@ A Rust-like domain specific programming language for creating zero-knowledge cir
 Noir Docs: https://noir-lang.org/docs/
 
 #### Noir x Ultrahonk
-The official backend for Noir generates Ultrahonk proofs. These are large proofs that use a lot of CPU to verify on-chain. The verifier contract below has  had some optimisations made to make this more feasible on Soroban.
+The official backend for Noir generates Ultrahonk proofs. These are large proofs that use a lot of CPU to verify on-chain. The verifier contract below has had some optimizations made to make this more feasible on Soroban.
 Noir Ultranhonk Verifier: https://github.com/yugocabrio/rs-soroban-ultrahonk
 Ultrahonk benefits from no trusted setup required (universal reference string via Aztec CRS).
 
