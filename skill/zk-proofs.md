@@ -13,54 +13,47 @@ Use this guide when the user asks for:
 
 This guide is intentionally status-aware. ZK capabilities on Stellar evolve with protocol and SDK releases.
 
-## Source-of-truth checks (required)
-Before implementation, always verify:
-1. CAP status in `stellar/stellar-protocol` (`Accepted`/`Implemented` vs draft/awaiting decision)
-2. Target network protocol/software version
-3. `soroban-sdk` support for required cryptographic host functions
-4. Availability of production examples matching your proving system
-
-Primary references:
-- [CAP-0059](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0059.md) (BLS12-381)
-- [CAP-0074](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0074.md) (BN254 proposal)
-- [CAP-0075](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0075.md) (Poseidon/Poseidon2 proposal)
-- [Stellar protocol/software versions](https://developers.stellar.org/docs/networks/software-versions)
-- [RPC providers](https://developers.stellar.org/docs/data/apis/rpc/providers)
-- [Stellar ZK overview](https://developers.stellar.org/docs/build/apps/zk/overview)
-
-## Capability model
-Treat advanced cryptography as capability-gated:
-- Capability A: proof verification primitive support
-- Capability B: hash primitive support
-- Capability C: SDK ergonomics and bindings
-- Capability D: operational cost envelope
-
 Do not assume all capabilities are present on all networks/environments.
 
 ## Proving system landscape on Stellar
 
-Three proving approaches are actively used by the Stellar developer community:
+Three proving approaches are actively used by the Stellar developer community: Noir, Circom and RISC Zero
 
-### Groth16 (BN254) via Circom or Noir
+### Noir
+A Rust-like domain specific programming language for creating zero-knowledge circuits. Note that Noir support is currently limited on Stellar due to processing constraints in a decentralized computing environment. This is a situation that we expect to see evolving throughout the course of the hackathon.
+Noir Docs: https://noir-lang.org/docs/
+
+#### Noir x Ultrahonk
+The official backend for Noir generates Ultrahonk proofs. These are large proofs that use a lot of CPU to verify on-chain. The verifier contract below has  had some optimisations made to make this more feasible on Soroban.
+Noir Ultranhonk Verifier: https://github.com/yugocabrio/rs-soroban-ultrahonk
+Ultrahonk benefits from no trusted setup required (universal reference string via Aztec CRS).
+
+#### Noir x Groth16
+There is a Noir > Groth16 backend available: https://github.com/jamesbachini/Noir-Groth16
+This uses BN254 host functions and generates a 256 byte proof.
+Groth16 Verifier: https://github.com/jamesbachini/Noir-Groth16/blob/main/contracts/src/lib.rs
 - Most common approach. Uses `soroban-sdk` BN254 host functions (`bn254().g1_mul`, `bn254().g1_add`, `bn254().pairing_check`).
 - Proof size: 256 bytes (A: G1 64 bytes + B: G2 128 bytes + C: G1 64 bytes).
 - Verification keys: alpha (G1: 64), beta (G2: 128), gamma (G2: 128), delta (G2: 128), IC points (G1: 64 each).
 - Groth16 requires a per-circuit trusted setup (Powers of Tau ceremony + circuit-specific phase 2).
-- On-chain cost: ~25M CPU instructions for pairing check.
 
-### UltraHonk via Noir
-- No trusted setup required (universal reference string via Aztec CRS).
-- Uses the `ultrahonk-soroban-verifier` library (verifies proofs from Nargo 1.0.0-beta.9 + barretenberg bb v0.87.0).
-- Proof size: 14,624 bytes (457 fields x 32 bytes). Larger than Groth16 but no setup ceremony.
-- Verification: sumcheck + shplonk pairing.
-- Widely adopted via the Stellar Game Studio starter template.
+### Circom
+Circom uses arithmetic based circuits which are compatible with snarkjs for generation of Groth16 proofs which can be verified on Stellar. 
+- `snarkjs groth16 prove` outputs `{ proof, publicSignals }` + verification key.
+- Proof can be verified locally via `snarkjs groth16 verify` before on-chain submission.
+- JSON VK, proof, and public inputs converted to canonical hex byte arrays using crate circom-to-soroban-hex
+Circom2 Groth16 Verifier: https://github.com/stellar/soroban-examples/tree/main/groth16_verifier
+Writing Circom Circuits: https://docs.circom.io/getting-started/writing-circuits/
 
-### RISC Zero zkVM
+### RISC Zero
+RISC Zero provides an execution environment where we can compute large amounts of data off-chain and then verify the output in a Stellar smart contract.
 - General-purpose zkVM: write Rust guest programs, generate proofs of correct execution.
 - Proof is a "seal" verified against an "image ID" (hash of the guest program).
 - No circuit writing required; standard Rust code inside the guest.
 - Well suited for complex game logic replay (physics simulations, multi-round games).
 - Higher proof generation cost (minutes for complex computations) but simpler developer experience.
+RISC Zero Docs: https://dev.risczero.com/
+RISC Zero Verifier: https://github.com/NethermindEth/stellar-risc0-verifier/
 
 ## Architecture patterns
 
@@ -111,171 +104,7 @@ Gate advanced paths by environment support:
 - Keep deterministic fallback behavior for unsupported environments
 - Document supported network/protocol matrix in deployment notes
 
-A common hackathon pattern is mock mode: if no verification key is stored for a circuit, the verifier returns `true`, allowing development and testing without real proofs.
-
-## Groth16 verification on Soroban
-
-The core verification pattern using BN254 host functions:
-
-```rust
-use soroban_sdk::{
-    crypto::bn254::{Bn254G1Affine, Bn254G2Affine, Fr},
-    vec, Bytes, Env, Vec,
-};
-
-pub fn verify_groth16(
-    env: &Env,
-    vk: &VerificationKey,
-    proof: &Bytes,
-    public_inputs: &[BytesN<32>],
-) -> bool {
-    // Parse proof points: A (G1), B (G2), C (G1)
-    let proof_a = Bn254G1Affine::from_bytes(proof.slice(0..64).try_into().unwrap());
-    let proof_b = parse_g2(&env, &proof, 64);  // handle byte order
-    let proof_c = Bn254G1Affine::from_bytes(proof.slice(192..256).try_into().unwrap());
-
-    // Parse verification key points
-    let alpha = Bn254G1Affine::from_bytes(vk.alpha_g1);
-    let beta  = Bn254G2Affine::from_bytes(vk.beta_g2);
-    let gamma = Bn254G2Affine::from_bytes(vk.gamma_g2);
-    let delta = Bn254G2Affine::from_bytes(vk.delta_g2);
-
-    // Compute vk_x = IC[0] + sum(public_inputs[i] * IC[i+1])
-    let bn254 = env.crypto().bn254();
-    let mut vk_x = Bn254G1Affine::from_bytes(vk.ic.get(0).unwrap());
-    for (i, input) in public_inputs.iter().enumerate() {
-        let scalar = Fr::from_bytes(input.clone());
-        let ic_point = Bn254G1Affine::from_bytes(vk.ic.get((i + 1) as u32).unwrap());
-        let term = bn254.g1_mul(&ic_point, &scalar);
-        vk_x = bn254.g1_add(&vk_x, &term);
-    }
-
-    // Pairing check: e(-A, B) * e(alpha, beta) * e(vk_x, gamma) * e(C, delta) == 1
-    let g1_points = vec![env, -proof_a, alpha, vk_x, proof_c];
-    let g2_points = vec![env, proof_b, beta, gamma, delta];
-    bn254.pairing_check(g1_points, g2_points)
-}
-```
-
-### G2 byte order: snarkjs vs Soroban SDK
-A critical interoperability detail: snarkjs outputs G2 points in `c0|c1` order, while the Soroban SDK expects `c1|c0`. You must swap the two 32-byte halves of each 64-byte component:
-
-```rust
-fn parse_g2_swapped(env: &Env, data: &Bytes, offset: u32) -> Bn254G2Affine {
-    let raw = data.slice(offset..offset + 128);
-    let mut swapped = Bytes::new(env);
-    // Swap c0|c1 to c1|c0 for each coordinate
-    swapped.append(&raw.slice(32..64));   // x.c1
-    swapped.append(&raw.slice(0..32));    // x.c0
-    swapped.append(&raw.slice(96..128));  // y.c1
-    swapped.append(&raw.slice(64..96));   // y.c0
-    Bn254G2Affine::from_bytes(swapped.try_into().unwrap())
-}
-```
-
-### Verification key types
-
-```rust
-use soroban_sdk::{contracttype, BytesN, Vec};
-
-/// BN254 serialization sizes
-pub const G1_SIZE: usize = 64;   // uncompressed G1 point
-pub const G2_SIZE: usize = 128;  // uncompressed G2 point
-pub const FR_SIZE: usize = 32;   // scalar field element
-
-#[contracttype]
-#[derive(Clone)]
-pub struct ZkProof {
-    pub a: BytesN<64>,     // G1
-    pub b: BytesN<128>,    // G2
-    pub c: BytesN<64>,     // G1
-}
-
-#[contracttype]
-#[derive(Clone)]
-pub struct ZkVerificationKey {
-    pub alpha: BytesN<64>,     // G1
-    pub beta: BytesN<128>,     // G2
-    pub gamma: BytesN<128>,    // G2
-    pub delta: BytesN<128>,    // G2
-    pub ic: Vec<BytesN<64>>,   // G1 points, length = num_public_inputs + 1
-}
-```
-
-## UltraHonk verification on Soroban
-
-For Noir circuits verified via UltraHonk:
-
-```rust
-use ultrahonk_soroban_verifier::{UltraHonkVerifier, PROOF_BYTES};
-
-pub fn verify_ultrahonk(
-    env: &Env,
-    vk_bytes: &Bytes,
-    proof: &Bytes,
-    public_inputs: &Bytes,
-) -> bool {
-    // Validate proof size (14,624 bytes = 457 fields * 32)
-    assert!(proof.len() as usize == PROOF_BYTES);
-
-    // Parse VK and create verifier
-    let verifier = UltraHonkVerifier::new(env, vk_bytes).expect("VK parse error");
-
-    // Run full verification (sumcheck + shplonk pairing)
-    verifier.verify(proof, public_inputs).is_ok()
-}
-```
-
-Store verification keys per circuit type and allow admin rotation:
-
-```rust
-#[contracttype]
-#[derive(Clone)]
-pub enum CircuitType {
-    DealValid,
-    RevealBoardValid,
-    ShowdownValid,
-}
-
-#[contracttype]
-pub enum StorageKey {
-    Admin,
-    Vk(CircuitType),
-    ProofVerified(BytesN<32>),
-}
-```
-
-## RISC Zero integration
-
-For complex computation proofs (game replay, physics simulation):
-
-```rust
-// Guest program (runs inside zkVM)
-#![no_main]
-risc0_zkvm::guest::entry!(main);
-
-fn main() {
-    // Read inputs from host
-    let mut input_len = [0u32; 1];
-    risc0_zkvm::guest::env::read_slice(&mut input_len);
-    // ... process inputs ...
-
-    // Commit public outputs (included in the journal)
-    let output = ProverOutput { winner, scores, transcript_hash, seed_commit };
-    risc0_zkvm::guest::env::commit_slice(&output.to_journal_words());
-}
-```
-
-On-chain verification uses a RISC Zero verifier contract:
-
-```rust
-#[contractclient(name = "VerifierClient")]
-pub trait VerifierInterface {
-    fn verify(env: Env, seal: Bytes, image_id: BytesN<32>, journal: BytesN<32>);
-}
-```
-
-The `image_id` is the hash of the compiled guest program. The `seal` is the ZK proof. The `journal` contains the public outputs committed by the guest.
+A common pattern is mock mode: if no verification key is stored for a circuit, the verifier returns `true`, allowing development and testing without real proofs.
 
 ## Noir circuit patterns for Stellar
 
@@ -374,29 +203,7 @@ fn main(
 ```
 
 ### MPC + ZK (coSNARKs)
-For multi-party private computation (e.g., card shuffling where no single party should see all cards), combine MPC with ZK using TACEO coNoir:
-
-```noir
-fn main(
-    // Private inputs (secret-shared across MPC parties)
-    party0_permutation: [u32; 52],
-    party1_permutation: [u32; 52],
-    party2_permutation: [u32; 52],
-    party0_salts: [Field; 52],
-    party1_salts: [Field; 52],
-    party2_salts: [Field; 52],
-    // Public inputs
-    num_players: pub u32,
-) -> pub (Field, [Field; MAX_PLAYERS], ...) {
-    // Derive shared deck from all parties' contributions
-    let (deck, salts) = derive_shared_deck_and_salts(/* ... */);
-    // Verify deck validity
-    assert_valid_deck(deck);
-    // Compute Merkle root of card commitments
-    let deck_root = compute_merkle_root(leaves);
-    (deck_root, hand_commitments, ...)
-}
-```
+For multi-party private computation (e.g., card shuffling where no single party should see all cards), combine MPC with ZK using TACEO coNoir.
 
 ## On-chain Poseidon hashing
 
@@ -466,7 +273,6 @@ pub struct DomainBinding {
 ```
 
 ## Integration checklist
-- [ ] Target network supports required primitives (BN254 host functions for Groth16/UltraHonk)
 - [ ] SDK pin supports required APIs
 - [ ] Proof statement includes anti-replay binding (nonce/context)
 - [ ] Full simulation path is covered (proof + policy + state transition)
@@ -565,18 +371,19 @@ Mitigation:
 ## Example starting points
 - [Soroban examples](https://github.com/stellar/soroban-examples)
 - [Groth16 verifier example](https://github.com/stellar/soroban-examples/tree/main/groth16_verifier)
-- [UltraHonk Soroban verifier](https://github.com/indextree/ultrahonk_soroban_contract) - library for Noir/UltraHonk proof verification
-- [Stellar Game Studio](https://github.com/jamesbachini/Stellar-Game-Studio) - hackathon starter template with ZK integration
-- [xray.games](https://github.com/fredericrezeau/xray-games) - production trustless arcade with dual Groth16 backends (Circom + Noir)
-- [Chickenz](https://github.com/ashfrancis/chickenz) - RISC Zero zkVM integration for game replay verification
-- [Stellar Poker (coSNARKs)](https://github.com/catmcgee/stellar-poker-cosnarks) - MPC + ZK for private card games using TACEO coNoir
+- [UltraHonk Soroban verifier](https://github.com/yugocabrio/rs-soroban-ultrahonk) - library for Noir/UltraHonk proof verification
 - [Security guide](security.md)
 - [Advanced patterns](advanced-patterns.md)
 - [Standards reference](standards-reference.md)
 
+## References and demos
+- [Stellar ZK overview](https://developers.stellar.org/docs/build/apps/zk/overview)
+- [Noir Groth16 Demo](https://github.com/jamesbachini/Noir-Groth16)
+- [Noir Ultrahonk Demo](https://jamesbachini.com/noir-on-stellar/)
+- [Circom Demo](https://github.com/jamesbachini/CircomStellar)
+- [RISC Zero Demo](https://github.com/jamesbachini/typezero)
+
 ## What not to do
-- Do not claim specific primitives are production-ready without checking CAP status and network support.
-- Do not hardcode draft-spec behavior as guaranteed runtime behavior.
 - Do not skip simulation and negative-path testing for verifier flows.
 - Do not use snarkjs G2 byte order directly without swapping for Soroban SDK compatibility.
 - Do not assume Poseidon parameters match across implementations without verifying with test vectors.
